@@ -79,19 +79,19 @@ def processDatabase(fileName, genes):
 	sorted(genes, key=lambda x: x.start)
 	snvs = []
 	fHandle = open(fileName)
-	Cgid = 1
-	Cdrug = 3
+	Cgid = 8
+	Cdrug = 9
 	Cref = 7
-	Cnuclpos = 10
-	Ctype = 11
-	Crefn = 12
-	Caltn = 13
-	Caarepl = 14
-	Cpubmed = 30
+	Cnuclpos = 1
+	Ctype = 2
+	Crefn = 3
+	Caltn = 4
+	Caarepl = 7
+	Cpubmed = 10
 	header = fHandle.next()
 	for line in fHandle:
 		items = line.strip().split('\t')
-		if not len(items):
+		if len(items) < 9:
 			continue
 		geneId = 'RVBD_' + items[Cgid]
 		gene = getGene(genes, geneId)
@@ -140,7 +140,7 @@ referenceFasta = getReferenceFasta("H37RV_V5.fasta")#FIXME
 snvs = processDatabase("dbTest", genes)
 sorted(snvs, key=lambda x: x.position)
 for i in snvs:
-	print(i.position - 1, i.stype, i.ref, i.alt, i.geneId, i.pubmed, i.drug)
+	print(i.position, i.stype, i.ref, i.alt, i.geneId, i.pubmed, i.drug)
 # for gene in genes:
 # 	if "1908c" in gene.gid:
 # 		s = getGeneSeq(referenceFasta, gene).seq
