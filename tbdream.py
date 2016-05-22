@@ -13,6 +13,8 @@ parser.add_argument('vcf', type=str, help='Vcf file with snps')
 
 args = parser.parse_args()
 
+SUPRESSWARNINGS = False
+
 class geneRecord():
 	start = 0
 	end = 0
@@ -40,7 +42,7 @@ def processGffGenes(fileName):
 			gid = ""
 			for i in arr[Cgdescription].strip().split(';'):
 				if "ID=" in i:
-					gid = i.strip()[3:]
+					gid = i.strip()[3:].replace("RVBD_", 'Rv')
 			if arr[Cgstrand].strip() == '+':
 				strand = 1
 			else:
@@ -59,17 +61,20 @@ class SNV():
 	position = 0
 	ref = ''
 	alt = ''
-	geneId = ''
+	gid = ''
 	pubmed = ''
 	drug = ''
-	def __init__(self, stype, position, ref, alt, geneId, pubmed, drug):
+	bid = ''
+	def __init__(self, stype, position, ref, alt, gid, pubmed, drug, bid = ''):
 		self.stype = stype
 		self.position = position
 		self.ref = ref
 		self.alt = alt
-		self.geneId = geneId
+		self.gid = gid
 		self.pubmed = pubmed
 		self.drug = drug
+		self.bid = bid
+
 
 reverce={}
 reverce['A'] = 'T'
@@ -77,9 +82,9 @@ reverce['T'] = 'A'
 reverce['G'] = 'C'
 reverce['C'] = 'G'
 
-def processDatabase(fileName, genes):
+def processDatabase1(fileName, genes):
 	sorted(genes, key=lambda x: x.start)
-	snvs = []
+	snvs = {}
 	fHandle = open(fileName)
 	Cgid = 8
 	Cdrug = 9
@@ -95,10 +100,11 @@ def processDatabase(fileName, genes):
 		items = line.strip().split('\t')
 		if len(items) < 9:
 			continue
-		geneId = 'RVBD_' + items[Cgid]
+		geneId = items[Cgid]
 		gene = getGene(genes, geneId)
 		if not gene:
-			print("There is no gene " + geneId)
+			if not SUPRESSWARNINGS:
+				print("There is no gene " + geneId)
 			continue
 		if gene.strand > 0:
 			genomePosition = gene.start + int(items[Cnuclpos]) - 1
@@ -118,7 +124,81 @@ def processDatabase(fileName, genes):
 					altS += i
 				else:
 					altS += reverce[i]
-		snvs.append(SNV(items[Ctype], genomePosition,refS, altS, geneId, items[Cpubmed], items[Cdrug]))
+		entryType = items[Ctype]
+		entryName = str(genomePosition) + '_'
+		if entryType == 'del':
+			entryName += 'del_' + refS
+		elif entryType == 'ins':
+			entryName += 'ins_' + altS
+		else:
+			entryName += refS + '_' + altS
+		snvs[entryName] =  SNV(items[Ctype], genomePosition, refS, altS, geneId, items[Cpubmed], items[Cdrug], items[0])
+	fHandle.close()
+	return snvs
+
+class geneInfo():
+	gid = ''
+	descr = ''
+	start = 0
+	end = 0
+	strand = 1
+	seq = ''
+	def __init__(self, gid, start, end, strand, seq = '', descr = '', ):
+		self.gid = gid
+		self.start = start
+		self.end = end
+		self.strand = strand
+		self.seq = seq
+		self.descr = descr
+
+
+class tbvarSNV():
+	stype = ''
+	position = 0
+	ref = ''
+	alt = ''
+	gene = ''
+	freq = 0
+	siftPred = ''
+	def __init__(self, stype, position, ref, alt, gene, freq, siftPred):
+		self.stype = stype
+		self.position = position
+		self.ref = ref
+		self.alt = alt
+		self.gene = gene
+		self.freq = freq
+		self.siftPred = siftPred
+
+
+def processDatabase2(fileName, genes):
+	sorted(genes, key=lambda x: x.start)
+	snvs = {}
+	fHandle = open(fileName)
+	Cnuclpos = 0
+	Crefn = 2
+	Caltn = 3
+	Ctype = 5
+	Cfreq = 6
+	Cgid = 7
+	CgeneName = 8
+	CgeneStart = 9
+	CgeneEnd = 10
+	CgeneStrand = 11
+	CsiftPred = 13
+
+	header = fHandle.next()
+	for line in fHandle:
+		items = line.strip().split('\t')
+		if CsiftPred > len(items) or not len(items[Cgid]):
+			continue
+		geneId = items[Cgid]
+		gene = geneInfo(geneId, items[CgeneStart], items[CgeneEnd], items[CgeneStrand])
+		genomePosition = int(items[Cnuclpos])
+
+		refS = items[Crefn].strip().replace(' ', '')
+		altS = items[Caltn].strip().replace(' ', '')
+
+		snvs[str(genomePosition) + '_' + refS + '_' + altS] = tbvarSNV(items[Ctype], genomePosition, refS, altS, gene, items[Cfreq], items[CsiftPred])
 	fHandle.close()
 	return snvs
 
@@ -158,7 +238,8 @@ def readVcf(fileName):
 		else:
 			items = line.strip().split()
 			pos = int(items[Cpos])
-			snps[pos] = SNP(items[Cchrom], pos, items[Cref], items[Calt])
+			entryName = str(pos) + '_' + items[Cref] + '_' + items[Calt]
+			snps[entryName] = SNP(items[Cchrom], pos, items[Cref], items[Calt])
 	handle.close()
 	return snps
 def searchSnps(snvs, vcfSnps):
@@ -181,15 +262,27 @@ def getGeneSeq(fasta, gene):
 	return subseq
 genes = processGffGenes(args.gff)
 referenceFasta = getReferenceFasta("H37RV_V5.fasta")#FIXME
-snvs = processDatabase("dbTest", genes)
-sorted(snvs, key=lambda x: x.position)
+dreamSnvs = processDatabase1("dbTest", genes)
+tbvarSnvs = processDatabase2("base2Annotation", genes)
 
 vcfSnps = readVcf(args.vcf)
-found = searchSnps(snvs, vcfSnps)
 for snp in vcfSnps:
-	print(vcfSnps[snp].pos, vcfSnps[snp].ref, vcfSnps[snp].alt, len(found[snp]))
-	for i in found[snp]:
-		print('\t', i.drug)
+	print(snp, end = '', sep = '\t')
+	if snp in dreamSnvs:
+		print('\t!', dreamSnvs[snp].gid, dreamSnvs[snp].drug, dreamSnvs[snp].pubmed, sep = '\t')
+	elif snp in tbvarSnvs:
+		print('\t?', tbvarSnvs[snp].gene.gid, tbvarSnvs[snp].freq, tbvarSnvs[snp].siftPred, sep = '\t')
+	else:
+		print('\t.\tno_match')
+
+# for snp in dreamSnvs:
+	# print(snp, dreamSnvs[snp].bid)
+
+#foundDream = searchSnps(snvs, dreamSnvs, tbvarSnvs)
+# for snp in vcfSnps:
+# 	print(vcfSnps[snp].pos, vcfSnps[snp].ref, vcfSnps[snp].alt, len(found[snp]))
+# 	for i in found[snp]:
+# 		print('Dream', i.drug, i.ref, i.alt)
 
 # for i in snvs:
 # 	print(i.position, i.stype, i.ref, i.alt, i.geneId, i.pubmed, i.drug)
