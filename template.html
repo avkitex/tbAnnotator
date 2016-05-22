@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <style>
+			<title>VCF Analysis Report $filename </title>
+		 <meta http-equiv="content-type" content="text/html; charset=windows-1251">
+				<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+		 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+		 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+		 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+		 <style type="text/css">
+		 		html, body{
+					width:100%;
+				}
+		 		#mainTable, #header{
+					border: 1px solid black;
+					width:90%;
+					margin: 0 auto 10px;
+				}
+				#suggestTable{
+					width:400px;
+					border: 1px solid black;
+					margin: 0 auto 10px;
+				}
+			 .notinhibitor{
+				 border:2px solid red;
+			 }
+			 .inhibitor{
+				 border:2px solid green;
+			 }
+			 .red{
+				 background-color:rgba(255,0,0,0.65);
+			 }
+			 .orange{
+				 background-color:rgba(255,222,0,0.65);
+					}
+				.yellow{
+					background-color:rgba(255,255,50,0.65);
+				}
+				.green{
+					background-color: #78AB46;
+				}
+				.mainHeader{
+					font-size: 30px;
+					font-weight: bold;
+				}
+				.tHeader{
+					font-size: 25px;
+					text-indent: 30px;
+				}
+         body{
+         	background: #fff;
+         }
+				 #suggestTable td{
+					 min-height:40px;
+
+				 }
+				 .table{
+					 font-size: 18px;
+				 }
+      </style>
+   </head>
+	 <body>
+	   <div id = "container">
+
+		 	<div id = "header"><div class="page-header">
+		     <p class = 'mainHeader'>VCF Analysis Report</p>
+		     $filename
+		   </div> </div>
+
+	 <div id = "main">
+
+		 <p class = "tHeader">Drugs suggested for treatment</p>
+		 <table class = "table" id="suggestTable">
+			 <thead>
+			 <tr>
+				 <td>Drug</td>
+				 <td>Resistance</td>
+			 </tr>
+			 </thead>
+			 #for $drug in $drugsList:
+				 #if drug['resistanceScore'] < 0.5
+				 <tr class="green">
+				 #elif drug['resistanceScore'] < 15
+				 <tr class="yellow">
+				 #else:
+				 <tr class="red">
+				 #end if
+				 <td>${drug['drug']}</td>
+				 <td>
+					 ${round(drug['resistanceScore'],1)}
+				 </td>
+			 </tr>
+			 #end for
+		 </table>
+		 <p class = "tHeader">SNPs in details</p>
+	  <table class="table" id = "mainTable">
+	   <tr>
+	     <th colspan="5" style="width:40%;">SNP</th>
+	     <th rowspan="2">Resistant Drug:Score</th>
+	 	  <th rowspan="2">SIFT prediction</th>
+	     <th rowspan="2">PubMed ID</th>
+
+	   </tr>
+
+	   <tr>
+	   <th id="snp">ID </th>
+	 	<th id="snp">Position</th>
+	 	<th id="snp">Ref Allele</th>
+	 	<th id="snp">Alt Allele</th>
+	 	<th id="snp">Gene</th>
+	   </tr>
+
+	 #for $snp in range(len($data))
+	   #if $data[$snp]['evidence'] == 3
+	   <tr class="red">
+	   #elif $data[$snp]['evidence'] == 2
+	   <tr class="orange">
+	   #elif $data[$snp]['evidence'] == 1
+	   <tr class="yellow">
+	   #else
+	   <tr>
+	   #end if
+	   <td>${snp + 1}</td>
+	   <td>$data[$snp]['position']</td>
+	   <td>$data[$snp]['refNucl']</td>
+	   <td>$data[$snp]['altNucl']</td>
+	   <td>$data[$snp]['geneId']</td>
+	   <td>
+	     #for drug in $data[$snp]['drugs']
+	       ${drug['drug']}:${round(drug['score'], 1)}
+	       <br/>
+	     #end for
+
+
+	   </td>
+	   <td>$data[$snp]['siftPred']</td>
+	   <td><a href="https://www.ncbi.nlm.nih.gov/pubmed/${data[$snp]['pubmed']}"> $data[$snp]['pubmed']</a></td>
+	 </tr>
+	 #end for
+
+	 </table>
+	 	 	</div>
+ 	 	 </div>
+	</body>
+</html>
