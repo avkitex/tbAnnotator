@@ -1,5 +1,6 @@
 from __future__ import print_function
 import argparse
+import math
 from Bio import SeqIO
 from Bio.Seq import Seq
 
@@ -38,7 +39,7 @@ def processGffGenes(fileName):
 	Cgdescription = 8
 	for line in fHandle:
 		arr = line.strip().split()
-		if len(arr):
+		if len(arr) and arr[2].strip() == 'gene':
 			gid = ""
 			for i in arr[Cgdescription].strip().split(';'):
 				if "ID=" in i:
@@ -253,27 +254,86 @@ def searchSnps(snvs, vcfSnps):
 		res[snpPos] = filtered
 	return res
 
-
+def getGeneDrugAssociation(genes, snvs):
+	assoc = {}
+	for snpId in snvs:
+		geneId = snvs[snpId].gid
+		drug = snvs[snpId].drug
+		if geneId not in assoc:
+			assoc[geneId] = {}
+		if drug not in assoc[geneId]:
+			assoc[geneId][drug] = 0
+		assoc[geneId][drug] += 1
+	for geneId in assoc:
+		gene = getGene(genes, geneId)
+		for drug in assoc[geneId]:
+			assoc[geneId][drug] = assoc[geneId][drug] * 100. / abs(gene.start - gene.end)
+	return assoc
 def getGeneSeq(fasta, gene):
 	print(len(fasta), gene.start, gene.end)
 	subseq = fasta[gene.start: gene.end]
 	if gene.strand < 0:
 		subseq = subseq.reverse_complement()
 	return subseq
+
+def findGeneForSnp(genes, snp):
+	for gene in genes:
+		if gene.start <= snp.pos <= gene.end:
+			return gene
+	return None
+
+
+
+
 genes = processGffGenes(args.gff)
-referenceFasta = getReferenceFasta("H37RV_V5.fasta")#FIXME
+#referenceFasta = getReferenceFasta("H37RV_V5.fasta")#FIXME
 dreamSnvs = processDatabase1("dbTest", genes)
 tbvarSnvs = processDatabase2("base2Annotation", genes)
 
+
+assoc = getGeneDrugAssociation(genes, dreamSnvs)
+
+# for gene in assoc:
+# 	print(gene)
+# 	for drug in assoc[gene]:
+# 		print('\t', drug, assoc[gene][drug])
+
+
 vcfSnps = readVcf(args.vcf)
+coutLine = 1
 for snp in vcfSnps:
-	print(snp, end = '', sep = '\t')
+	drugs = []
+	evidence = "no"
+	geneId = ''
+	siftPred = ''
+	freq = ''
+	pubmed = ''
+
+	gene = findGeneForSnp(genes, vcfSnps[snp])
+	if gene:
+		evidence = 'geneLocation'
+		geneId = gene.gid
+		if gene.gid in assoc:
+			for drug in assoc[gene.gid]:
+				drugs.append({'drug':drug, 'score':assoc[gene.gid][drug]})
+	if snp in tbvarSnvs:
+		evidence = 'prediction'
+		geneId = tbvarSnvs[snp].gene.gid
+		freq = tbvarSnvs[snp].freq
+		siftPred = tbvarSnvs[snp].siftPred
 	if snp in dreamSnvs:
-		print('\t!', dreamSnvs[snp].gid, dreamSnvs[snp].drug, dreamSnvs[snp].pubmed, sep = '\t')
-	elif snp in tbvarSnvs:
-		print('\t?', tbvarSnvs[snp].gene.gid, tbvarSnvs[snp].freq, tbvarSnvs[snp].siftPred, sep = '\t')
+		evidence = 'paper'
+		geneId = dreamSnvs[snp].gid
+		drugs.append({'drug':dreamSnvs[snp].drug, 'score':100})
+		pubmed =  dreamSnvs[snp].pubmed
+	print(coutLine, evidence, vcfSnps[snp].pos, vcfSnps[snp].ref, vcfSnps[snp].alt, geneId, end = '\t', sep = '\t')
+	if len(drugs):
+		for drug in sorted(drugs, key=lambda x: -x['score']):
+			print(drug['drug'], ':', round(drug['score'], 1), ';', sep = '', end = '')
 	else:
-		print('\t.\tno_match')
+		print('-', end ='')
+	print('\t', siftPred, pubmed, sep = '\t')
+	coutLine += 1
 
 # for snp in dreamSnvs:
 	# print(snp, dreamSnvs[snp].bid)
