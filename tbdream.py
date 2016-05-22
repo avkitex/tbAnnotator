@@ -1,10 +1,12 @@
+from __future__ import print_function
 import argparse
 from Bio import SeqIO
 from Bio.Seq import Seq
 
 parser = argparse.ArgumentParser(prog='tbdream.py', usage='%(prog)s [options]', description='description',
 								 epilog="\xa9 Avktex 2016")
-parser.add_argument('-gff', '--gff', type=str, help='Full path to database multiMol2', required=True)
+parser.add_argument('-gff', '--gff', type=str, help='Gff file with genes annotation', required=True)
+parser.add_argument('vcf', type=str, help='Vcf file with snps')
 #parser.add_argument('-td', '--trainingDockedMol2', metavar='GlobConfig', type=str, help='Full path to docked training multiMol2', required=True)
 #parser.add_argument('-bd', '--baseDockedMol2', metavar='GlobConfig', type=str, help='Full path to database docked multiMol2', required=True)
 
@@ -129,6 +131,48 @@ def getReferenceFasta(fastaFileName):
 	handle.close()
 	return fasta
 
+class SNP():
+	chrom = ''
+	ref = ''
+	alt = ''
+	pos = 0
+	def __init__(self, chrom, pos, ref, alt):
+		self.chrom = chrom
+		self.pos = pos
+		self.ref = ref
+		self.alt = alt
+
+def readVcf(fileName):
+	handle = open(fileName)
+	snps = {}
+	Cchrom = 0
+	Cpos = 1
+	Cref = 3
+	Calt = 4
+	#rest is not informative for now
+	for line in handle:
+		if line.startswith('##'):
+			pass
+		elif line.startswith('#'):
+			header = line.strip().split()
+		else:
+			items = line.strip().split()
+			pos = int(items[Cpos])
+			snps[pos] = SNP(items[Cchrom], pos, items[Cref], items[Calt])
+	handle.close()
+	return snps
+def searchSnps(snvs, vcfSnps):
+	sorted(snvs, key=lambda x: x.position)
+	res = {}
+	for snpPos in vcfSnps:
+		filtered = []
+		for snv in snvs:
+			if snv.position == snpPos:
+				filtered.append(snv)
+		res[snpPos] = filtered
+	return res
+
+
 def getGeneSeq(fasta, gene):
 	print(len(fasta), gene.start, gene.end)
 	subseq = fasta[gene.start: gene.end]
@@ -139,8 +183,16 @@ genes = processGffGenes(args.gff)
 referenceFasta = getReferenceFasta("H37RV_V5.fasta")#FIXME
 snvs = processDatabase("dbTest", genes)
 sorted(snvs, key=lambda x: x.position)
-for i in snvs:
-	print(i.position, i.stype, i.ref, i.alt, i.geneId, i.pubmed, i.drug)
+
+vcfSnps = readVcf(args.vcf)
+found = searchSnps(snvs, vcfSnps)
+for snp in vcfSnps:
+	print(vcfSnps[snp].pos, vcfSnps[snp].ref, vcfSnps[snp].alt, len(found[snp]))
+	for i in found[snp]:
+		print('\t', i.drug)
+
+# for i in snvs:
+# 	print(i.position, i.stype, i.ref, i.alt, i.geneId, i.pubmed, i.drug)
 # for gene in genes:
 # 	if "1908c" in gene.gid:
 # 		s = getGeneSeq(referenceFasta, gene).seq
