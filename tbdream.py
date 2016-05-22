@@ -1,6 +1,5 @@
 from __future__ import print_function
-import argparse
-import math
+import argparse, os, json
 from Bio import SeqIO
 from Bio.Seq import Seq
 
@@ -84,7 +83,7 @@ reverce['G'] = 'C'
 reverce['C'] = 'G'
 
 def processDatabase1(fileName, genes):
-	sorted(genes, key=lambda x: x.start)
+	genes.sort(key=lambda x: x.start)
 	snvs = {}
 	fHandle = open(fileName)
 	Cgid = 8
@@ -172,7 +171,7 @@ class tbvarSNV():
 
 
 def processDatabase2(fileName, genes):
-	sorted(genes, key=lambda x: x.start)
+	genes.sort(key=lambda x: x.start)
 	snvs = {}
 	fHandle = open(fileName)
 	Cnuclpos = 0
@@ -244,7 +243,7 @@ def readVcf(fileName):
 	handle.close()
 	return snps
 def searchSnps(snvs, vcfSnps):
-	sorted(snvs, key=lambda x: x.position)
+	#snvs.sort(key=lambda x: x.position)
 	res = {}
 	for snpPos in vcfSnps:
 		filtered = []
@@ -281,7 +280,11 @@ def findGeneForSnp(genes, snp):
 		if gene.start <= snp.pos <= gene.end:
 			return gene
 	return None
-
+def getDrugs(dreamSnvs):
+	drugs = set()
+	for snp in dreamSnvs:
+		drugs.add(dreamSnvs[snp].drug)
+	return list(drugs)
 
 
 
@@ -292,18 +295,33 @@ tbvarSnvs = processDatabase2("base2Annotation", genes)
 
 
 assoc = getGeneDrugAssociation(genes, dreamSnvs)
+allDrugs = getDrugs(dreamSnvs)
+#print(allDrugs)
 
 # for gene in assoc:
 # 	print(gene)
 # 	for drug in assoc[gene]:
 # 		print('\t', drug, assoc[gene][drug])
+def dumpJson(file, data):
+	with open(file, 'w') as out:
+		json.dump(data, out)
+	return 0
+def saveResults(file, results):
+	dumpJson(file, results)
 
+
+drugsScoreAssociated = {}
+for drug in allDrugs:
+	drugsScoreAssociated[drug] = 0
 
 vcfSnps = readVcf(args.vcf)
 coutLine = 1
+resultJsonObj = {}
+resultJsonObj['file'] = os.path.split(args.vcf)[1]
+resultJsonObj['data'] = []
 for snp in vcfSnps:
 	drugs = []
-	evidence = "no"
+	evidence = 0
 	geneId = ''
 	siftPred = ''
 	freq = ''
@@ -311,19 +329,21 @@ for snp in vcfSnps:
 
 	gene = findGeneForSnp(genes, vcfSnps[snp])
 	if gene:
-		evidence = 'geneLocation'
 		geneId = gene.gid
 		if gene.gid in assoc:
+			evidence = 1
 			for drug in assoc[gene.gid]:
-				drugs.append({'drug':drug, 'score':assoc[gene.gid][drug]})
+				drugsScoreAssociated[drug] = max(assoc[gene.gid][drug], drugsScoreAssociated[drug])
+				drugs.append({'drug':drug, 'score': round(assoc[gene.gid][drug], 1)})
 	if snp in tbvarSnvs:
-		evidence = 'prediction'
+		evidence = 2
 		geneId = tbvarSnvs[snp].gene.gid
 		freq = tbvarSnvs[snp].freq
 		siftPred = tbvarSnvs[snp].siftPred
 	if snp in dreamSnvs:
-		evidence = 'paper'
+		evidence = 3
 		geneId = dreamSnvs[snp].gid
+		drugsScoreAssociated[drug] = max(100, drugsScoreAssociated[drug])
 		drugs.append({'drug':dreamSnvs[snp].drug, 'score':100})
 		pubmed =  dreamSnvs[snp].pubmed
 	print(coutLine, evidence, vcfSnps[snp].pos, vcfSnps[snp].ref, vcfSnps[snp].alt, geneId, end = '\t', sep = '\t')
@@ -334,7 +354,25 @@ for snp in vcfSnps:
 		print('-', end ='')
 	print('\t', siftPred, pubmed, sep = '\t')
 	coutLine += 1
+	resultJsonObj['data'].append({
+		'position': vcfSnps[snp].pos,
+		'refNucl': vcfSnps[snp].ref,
+		'altNucl': vcfSnps[snp].alt,
+		'geneId':geneId,
+		'drugs':drugs,
+		'evidence':evidence,
+		'siftPred':siftPred,
+		'freq':freq,
+		'pubmed':pubmed
+	})
+resultJsonObj['data'].sort(key=lambda x: -x['evidence'])
 
+resultJsonObj['drugsList'] = []
+for drug in sorted(drugsScoreAssociated.keys(), key=lambda x: drugsScoreAssociated[x]):
+	resultJsonObj['drugsList'].append({'drug':drug, 'resistanceScore':drugsScoreAssociated[drug]})
+
+
+saveResults('result.json', resultJsonObj)#FIXME
 # for snp in dreamSnvs:
 	# print(snp, dreamSnvs[snp].bid)
 
