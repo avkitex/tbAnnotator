@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <style>
+			<title>VCF Analysis Report TSVC_variants_IonXpress_008.vcf </title>
+		 <meta http-equiv="content-type" content="text/html; charset=windows-1251">
+				<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+		 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+		 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+		 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+		 <style type="text/css">
+		 		html, body{
+					width:100%;
+				}
+		 		#mainTable, #header{
+					border: 1px solid black;
+					width:90%;
+					margin: 0 auto 10px;
+				}
+				#suggestTable{
+					width:400px;
+					border: 1px solid black;
+					margin: 0 auto 10px;
+				}
+			 .notinhibitor{
+				 border:2px solid red;
+			 }
+			 .inhibitor{
+				 border:2px solid green;
+			 }
+			 .red{
+				 background-color:rgba(255,0,0,0.65);
+			 }
+			 .orange{
+				 background-color:rgba(255,222,0,0.65);
+					}
+				.yellow{
+					background-color:rgba(255,255,50,0.65);
+				}
+				.green{
+					background-color: #78AB46;
+				}
+				.mainHeader{
+					font-size: 30px;
+					font-weight: bold;
+				}
+				.tHeader{
+					font-size: 25px;
+					text-indent: 30px;
+				}
+         body{
+         	background: #fff;
+         }
+				 #suggestTable td{
+					 min-height:40px;
+
+				 }
+				 .table{
+					 font-size: 18px;
+				 }
+      </style>
+   </head>
+	 <body>
+	   <div id = "container">
+
+		 	<div id = "header"><div class="page-header">
+		     <p class = 'mainHeader'>VCF Analysis Report</p>
+		     TSVC_variants_IonXpress_008.vcf
+		   </div> </div>
+
+	 <div id = "main">
+
+		 <p class = "tHeader">Drugs suggested for treatment</p>
+		 <table class = "table" id="suggestTable">
+			 <thead>
+			 <tr>
+				 <td>Drug</td>
+				 <td>Resistance</td>
+			 </tr>
+			 </thead>
+				 <tr class="green">
+				 <td>AMI</td>
+				 <td>
+					 0.0
+				 </td>
+			 </tr>
+				 <tr class="green">
+				 <td>PAS</td>
+				 <td>
+					 0.0
+				 </td>
+			 </tr>
+				 <tr class="green">
+				 <td>SM</td>
+				 <td>
+					 0.0
+				 </td>
+			 </tr>
+				 <tr class="green">
+				 <td>ETH</td>
+				 <td>
+					 0.0
+				 </td>
+			 </tr>
+				 <tr class="yellow">
+				 <td>RIF</td>
+				 <td>
+					 3.8
+				 </td>
+			 </tr>
+				 <tr class="yellow">
+				 <td>EMB</td>
+				 <td>
+					 3.9
+				 </td>
+			 </tr>
+				 <tr class="yellow">
+				 <td>INH</td>
+				 <td>
+					 11.3
+				 </td>
+			 </tr>
+				 <tr class="red">
+				 <td>PZA</td>
+				 <td>
+					 47.9
+				 </td>
+			 </tr>
+				 <tr class="red">
+				 <td>FLQ</td>
+				 <td>
+					 100.0
+				 </td>
+			 </tr>
+		 </table>
+		 <p class = "tHeader">SNPs in details</p>
+	  <table class="table" id = "mainTable">
+	   <tr>
+	     <th colspan="5" style="width:40%;">SNP</th>
+	     <th rowspan="2">Resistant Drug:Score</th>
+	 	  <th rowspan="2">SIFT prediction</th>
+	     <th rowspan="2">PubMed ID</th>
+
+	   </tr>
+
+	   <tr>
+	   <th id="snp">ID </th>
+	 	<th id="snp">Position</th>
+	 	<th id="snp">Ref Allele</th>
+	 	<th id="snp">Alt Allele</th>
+	 	<th id="snp">Gene</th>
+	   </tr>
+
+	   <tr class="red">
+	   <td>1</td>
+	   <td>7585</td>
+	   <td>G</td>
+	   <td>C</td>
+	   <td>Rv0006</td>
+	   <td>
+	       FLQ:0.7
+	       <br/>
+	       FLQ:100.0
+	       <br/>
+
+
+	   </td>
+	   <td>TOLERATED</td>
+	   <td><a href="https://www.ncbi.nlm.nih.gov/pubmed/7848059"> 7848059</a></td>
+	 </tr>
+	   <tr class="orange">
+	   <td>2</td>
+	   <td>9304</td>
+	   <td>G</td>
+	   <td>A</td>
+	   <td>Rv0006</td>
+	   <td>
+	       FLQ:0.7
+	       <br/>
+
+
+	   </td>
+	   <td>TOLERATED</td>
+	   <td><a href="https://www.ncbi.nlm.nih.gov/pubmed/"> </a></td>
+	 </tr>
+	   <tr class="orange">
+	   <td>3</td>
+	   <td>761139</td>
+	   <td>C</td>
+	   <td>T</td>
+	   <td>Rv0667</td>
+	   <td>
+	       RIF:3.8
+	       <br/>
+
+
+	   </td>
+	   <td>DELETERIOUS</td>
+	   <td><a href="https://www.ncbi.nlm.nih.gov/pubmed/"> </a></td>
+	 </tr>
+	   <tr class="orange">
+	   <td>4</td>
+	   <td>7362</td>
+	   <td>G</td>
+	   <td>C</td>
+	   <td>Rv0006</td>
+	   <td>
+	       FLQ:0.7
+	       <br/>
+
+
+	   </td>
+	   <td>TOLERATED</td>
+	   <td><a href="https://www.ncbi.nlm.nih.gov/pubmed/"> </a></td>
+	 </tr>
+	   <tr class="orange">
+	   <td>5</td>
+	   <td>2155168</td>
+	   <td>C</td>
+	   <td>G</td>
+	   <td>Rv1908c</td>
+	   <td>
+	       INH:11.3
+	       <br/>
+
+
+	   </td>
+	   <td>DELETERIOUS</td>
+	   <td><a href="https://www.ncbi.nlm.nih.gov/pubmed/"> </a></td>
+	 </tr>
+	   <tr class="orange">
+	   <td>6</td>
+	   <td>760115</td>
+	   <td>C</td>
+	   <td>T</td>
+	   <td>Rv0667</td>
+	   <td>
+	       RIF:3.8
+	       <br/>
+
+
+	   </td>
+	   <td></td>
+	   <td><a href="https://www.ncbi.nlm.nih.gov/pubmed/"> </a></td>
+	 </tr>
+	   <tr class="yellow">
+	   <td>7</td>
+	   <td>2289031</td>
+	   <td>G</td>
+	   <td>A</td>
+	   <td>Rv2043c</td>
+	   <td>
+	       PZA:47.9
+	       <br/>
+
+
+	   </td>
+	   <td></td>
+	   <td><a href="https://www.ncbi.nlm.nih.gov/pubmed/"> </a></td>
+	 </tr>
+	   <tr class="yellow">
+	   <td>8</td>
+	   <td>4247738</td>
+	   <td>G</td>
+	   <td>C</td>
+	   <td>Rv3795</td>
+	   <td>
+	       RIF:0.1
+	       <br/>
+	       EMB:3.9
+	       <br/>
+
+
+	   </td>
+	   <td></td>
+	   <td><a href="https://www.ncbi.nlm.nih.gov/pubmed/"> </a></td>
+	 </tr>
+	   <tr class="yellow">
+	   <td>9</td>
+	   <td>4247728</td>
+	   <td>G</td>
+	   <td>C</td>
+	   <td>Rv3795</td>
+	   <td>
+	       RIF:0.1
+	       <br/>
+	       EMB:3.9
+	       <br/>
+
+
+	   </td>
+	   <td></td>
+	   <td><a href="https://www.ncbi.nlm.nih.gov/pubmed/"> </a></td>
+	 </tr>
+	   <tr>
+	   <td>10</td>
+	   <td>2714311</td>
+	   <td>G</td>
+	   <td>C</td>
+	   <td>Rv2416c</td>
+	   <td>
+
+
+	   </td>
+	   <td></td>
+	   <td><a href="https://www.ncbi.nlm.nih.gov/pubmed/"> </a></td>
+	 </tr>
+
+	 </table>
+	 	 	</div>
+ 	 	 </div>
+	</body>
+</html>
+
