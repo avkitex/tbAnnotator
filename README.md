@@ -7,9 +7,10 @@ Developed by avkitex, phill.gusev, pankevich-ev on Genehack-2
 
 
 ## Requirenments
+```sh
 apt-get install python2.7, python-pip
 pip install Cheetah
-
+```
 ## RUN
 
 ```sh
